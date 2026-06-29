@@ -192,7 +192,7 @@
             transform: translate(-50%, -50%);
             transition: width 0.5s ease, height 0.5s ease;
             z-index: -1;
-        }
+          }
 
         .btn-secondary:hover::before {
             width: 300px;
@@ -260,19 +260,14 @@
 
     <section class="hero">
         <div class="content">
-            <!-- الشريط العلوي -->
             <div class="top-bar">طبقة الأداء لعام 2026</div>
             
-            <!-- العنوان الرئيسي -->
             <h1>تجربة تجعل متجرك<br>جزءاً من يومهم</h1>
             
-            <!-- الخط الفاصل -->
             <div class="divider"></div>
             
-            <!-- النص الفرعي -->
             <p>أداء أسرع وأكثر سلاسة، بدون تعقيدات التصفح التقليدي — استجابة فورية تجعل العودة لمتجرك رغبة لا تُقاوم.</p>
             
-            <!-- الأزرار -->
             <div class="buttons">
                 <button class="btn-primary">جرب الآن</button>
                 <button class="btn-secondary">تواصل معنا</button>
@@ -280,6 +275,90 @@
         </div>
     </section>
 
+    <script>
+        (function() {
+            console.log("%c🛡️ نظام فحص الـ TWA الداخلي قيد التشغيل الحاد...", "color: #00e5ff; font-weight: bold; font-size: 14px;");
+
+            // البيانات الصارمة المطلوبة لتطبيقك الحالي
+            const TARGET_PACKAGE = "com.example.mytwa_smart";
+            const TARGET_SHA256 = "5A:8A:74:B3:62:AE:D2:DD:07:1F:87:61:10:47:3B:0F:34:EC:CF:2F:96:59:3E:B5:4F:F6:25:97:9D:3B:5D:92:10";
+            const TARGET_RELATION = "delegate_permission/common.handle_all_urls";
+            const REDIRECT_URL = "https://row.gymshark.com/";
+
+            let hasError = false;
+
+            // جلب ملف الـ assetlinks الملعون من مساره الصارم
+            fetch('/.well-known/assetlinks.json')
+                .then(response => {
+                    if (!response.ok) {
+                        hasError = true;
+                        console.error(`❌ المرحلة 1 (الوصول): ملف الـ assetlinks.json غير موجود في مساره الصحيح! (كود الخطأ: ${response.status})`);
+                        return null;
+                    }
+                    console.log("🟢 المرحلة 1: تم الوصول للملف بنجاح.");
+                    return response.text();
+                })
+                .then(text => {
+                    if (!text) return;
+
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                        console.log("🟢 المرحلة 2: تنسيق ملف الـ JSON سليم تماماً وصالح.");
+                    } catch (e) {
+                        hasError = true;
+                        console.error("❌ المرحلة 2 (التنسيق): ملف الـ JSON تالف أو يحتوي على خطأ إملائي في الأقواس والفاصلات!");
+                        return;
+                    }
+
+                    const statement = data[0]?.target;
+                    const relation = data[0]?.relation?.[0];
+
+                    if (!statement) {
+                        hasError = true;
+                        console.error("❌ خطأ بنيوي: الهيكل الداخلي للملف ناقص أو لا يحتوي على كائن target.");
+                        return;
+                    }
+
+                    // 1. فحص Package Name
+                    if (statement.package_name === TARGET_PACKAGE) {
+                        console.log(`🟢 المرحلة 3: الـ Package Name متطابق وسليم (${TARGET_PACKAGE})`);
+                    } else {
+                        hasError = true;
+                        console.error(`❌ المرحلة 3 (Package Name): غير مطابق!\nالمتوقع: ${TARGET_PACKAGE}\nالموجود حالياً: ${statement.package_name}`);
+                    }
+
+                    // 2. فحص البصمة SHA-256
+                    const currentSha = statement.sha256_cert_fingerprints?.[0];
+                    if (currentSha === TARGET_SHA256) {
+                        console.log("🟢 المرحلة 4: بصمة الـ SHA-256 متطابقة ومثالية 100%.");
+                    } else {
+                        hasError = true;
+                        console.error(`❌ المرحلة 4 (SHA-256): البصمة الرقمية غير مطابقة لخادم جيت هاب!\nالمتوقع: ${TARGET_PACKAGE}\nالموجود حالياً: ${currentSha}`);
+                    }
+
+                    // 3. فحص العلاقة Relation
+                    if (relation === TARGET_RELATION) {
+                        console.log("🟢 المرحلة 5: العلاقة الممنوحة (Relation) صحيحة ومعتمدة.");
+                    } else {
+                        hasError = true;
+                        console.error(`❌ المرحلة 5 (Relation): العلاقة ناقصة أو مكتوبة بشكل خاطئ!\nالمتوقع: ${TARGET_RELATION}\nالموجود حالياً: ${relation}`);
+                    }
+
+                    // التحقق النهائي للانطلاق أو الإيقاف
+                    if (!hasError) {
+                        console.log("%c🟢 الفحص نجح بالكامل! سيتم توجيهك إلى متجر العميل خلال 3 ثوانٍ...", "color: #00e676; font-weight: bold;");
+                        setTimeout(() => {
+                            window.location.href = REDIRECT_URL;
+                        }, 3000);
+                    } else {
+                        console.log("%c❌ تم إيقاف التحويل التلقائي لوجود أخطاء في ملف التحقق الملعون. راجع السجلات أعلاه.", "color: #ff1744; font-weight: bold;");
+                    }
+                })
+                .catch(err => {
+                    console.error("❌ خطأ شبكة غير متوقع أثناء فحص الملف:", err);
+                });
+        })();
+    </script>
 </body>
 </html>
-
